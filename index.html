@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0d1117">
+<meta name="theme-color" content="#ffffff">
 <link rel="manifest" href="manifest.json">
 <title>ORR Sector Tracker</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
@@ -14,73 +14,72 @@
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #1a1f2e; overflow: hidden; }
-.leaflet-container { background: #e8e0d8 !important; }
 #app { display: flex; flex-direction: column; height: 100vh; }
 
-#banner { flex-shrink: 0; background: #ffffff; border-bottom: 1px solid #dde3ed; padding: 12px 16px 10px; z-index: 1000; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+/* Splash */
+#splash { position: absolute; inset: 0; z-index: 9999; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+#splash-pulse { width: 72px; height: 72px; border-radius: 50%; background: rgba(26,106,191,0.12); display: flex; align-items: center; justify-content: center; animation: sp 1.8s ease-in-out infinite; }
+@keyframes sp { 0%,100%{transform:scale(1)} 50%{transform:scale(1.12)} }
+#splash h1 { font-size: 26px; font-weight: 700; color: #1a6abf; }
+#splash p { font-size: 15px; color: #7a8499; }
+#splash button { padding: 14px 48px; background: #1a6abf; border: none; border-radius: 10px; color: #fff; font-size: 18px; font-weight: 600; cursor: pointer; -webkit-appearance: none; }
+
+/* Banner */
+#banner { flex-shrink: 0; background: #fff; border-bottom: 1px solid #dde3ed; padding: 12px 16px 10px; z-index: 1000; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
 #banner-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #7a8499; margin-bottom: 3px; }
-#sector-name { font-size: 32px; font-weight: 700; color: #1a6abf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.3s; line-height: 1.15; }
+#sector-name { font-size: 32px; font-weight: 700; color: #1a6abf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.15; }
 #sector-name.unknown { color: #9aa0b0; font-style: italic; font-weight: 400; font-size: 22px; }
 #sector-name.flash { animation: flash 0.7s ease; }
-@keyframes flash { 0% { background: rgba(26,106,191,0.12); border-radius: 4px; padding-left: 6px; } 100% { background: transparent; padding-left: 0; } }
+@keyframes flash { 0%{background:rgba(26,106,191,0.12);border-radius:4px;padding-left:6px} 100%{background:transparent;padding-left:0} }
 
 #status-bar { display: flex; align-items: center; gap: 6px; margin-top: 5px; font-size: 11px; color: #7a8499; }
 #gps-dot { width: 7px; height: 7px; border-radius: 50%; background: #b0b8c8; flex-shrink: 0; transition: background 0.3s; }
 #gps-dot.active { background: #22a84a; animation: pulse 2s infinite; }
-#gps-dot.error  { background: #e03c3c; }
-#gps-dot.warn   { background: #c97f0a; }
+#gps-dot.error { background: #e03c3c; }
+#gps-dot.warn { background: #c97f0a; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
 
 #alert-banner { display: none; background: #edfaf1; border-bottom: 2px solid #22a84a; padding: 8px 16px; font-size: 13px; color: #1a7a3a; font-weight: 600; flex-shrink: 0; }
 #alert-banner.visible { display: block; animation: slideDown 0.3s ease; }
-@keyframes slideDown { from { transform: translateY(-8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes slideDown { from{transform:translateY(-8px);opacity:0} to{transform:translateY(0);opacity:1} }
 
 #map { flex: 1; width: 100%; }
-
-#splash {
-  position: absolute; inset: 0; z-index: 9999;
-  background: #ffffff;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 16px;
-  cursor: pointer;
-}
-#splash-title { font-size: 28px; font-weight: 700; color: #1a6abf; }
-#splash-sub { font-size: 15px; color: #7a8499; }
-#splash-btn {
-  margin-top: 8px; padding: 14px 40px;
-  background: #1a6abf; border: none; border-radius: 10px;
-  color: #fff; font-size: 18px; font-weight: 600; cursor: pointer;
-}
-#splash-pulse {
-  width: 64px; height: 64px; border-radius: 50%;
-  background: rgba(26,106,191,0.15);
-  display: flex; align-items: center; justify-content: center;
-  animation: splashPulse 1.8s ease-in-out infinite;
-}
-#splash-pulse svg { width: 32px; height: 32px; }
-@keyframes splashPulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.12);opacity:0.7} }
+.leaflet-container { background: #e8e4dc !important; }
 
 #controls { position: absolute; bottom: 20px; right: 12px; display: flex; flex-direction: column; gap: 8px; z-index: 1000; }
-.ctrl-btn { width: 44px; height: 44px; background: #ffffff; border: 1px solid #dde3ed; border-radius: 8px; color: #1a1f2e; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+.ctrl-btn { width: 44px; height: 44px; background: #fff; border: 1px solid #dde3ed; border-radius: 8px; color: #1a1f2e; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
 .ctrl-btn:active { background: #f0f3f8; }
 
+/* Config */
 #config-overlay { display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.45); z-index: 2000; align-items: flex-end; justify-content: center; }
 #config-overlay.open { display: flex; }
-#config-panel { background: #ffffff; border: 1px solid #dde3ed; border-radius: 14px 14px 0 0; padding: 20px 16px 36px; width: 100%; max-width: 500px; }
+#config-panel { background: #fff; border: 1px solid #dde3ed; border-radius: 14px 14px 0 0; padding: 20px 16px 36px; width: 100%; max-width: 500px; }
 #config-panel h2 { font-size: 15px; font-weight: 600; margin-bottom: 16px; color: #1a1f2e; }
 .fg { margin-bottom: 13px; }
 .fg label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #7a8499; display: block; margin-bottom: 5px; }
-.fg input { width: 100%; padding: 8px 10px; background: #f5f7fa; border: 1px solid #dde3ed; border-radius: 6px; color: #1a1f2e; font-size: 13px; }
-.fg input:focus { outline: none; border-color: #1a6abf; }
+.fg input, .fg select { width: 100%; padding: 8px 10px; background: #f5f7fa; border: 1px solid #dde3ed; border-radius: 6px; color: #1a1f2e; font-size: 13px; }
+.fg input:focus, .fg select:focus { outline: none; border-color: #1a6abf; }
 .chk-row { display: flex; align-items: center; gap: 10px; }
 .chk-row input[type=checkbox] { width: 16px; height: 16px; accent-color: #1a6abf; flex-shrink: 0; }
 .chk-row label { font-size: 13px; color: #1a1f2e; font-weight: 400; text-transform: none; letter-spacing: 0; }
 #save-btn { width: 100%; padding: 10px; background: #1a6abf; border: none; border-radius: 6px; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 6px; }
 #close-cfg { float: right; background: none; border: none; color: #7a8499; font-size: 20px; cursor: pointer; }
-.leaflet-tooltip { background: #ffffff !important; border: 1px solid #dde3ed !important; color: #1a1f2e !important; font-size: 12px !important; font-weight: 600 !important; box-shadow: 0 1px 4px rgba(0,0,0,0.1) !important; }
+.leaflet-tooltip { background: #fff !important; border: 1px solid #dde3ed !important; color: #1a1f2e !important; font-size: 12px !important; font-weight: 600 !important; box-shadow: 0 1px 4px rgba(0,0,0,0.1) !important; }
 </style>
 </head>
 <body>
+
+<div id="splash">
+  <div id="splash-pulse">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#1a6abf" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+    </svg>
+  </div>
+  <h1>ORR Sector Tracker</h1>
+  <p>Tap to start tracking</p>
+  <button id="start-btn">Start</button>
+</div>
+
 <div id="app">
   <div id="banner">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;">
@@ -88,7 +87,7 @@ html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Sego
         <div id="banner-label">ORR Sector</div>
         <div id="sector-name" class="unknown">Locating…</div>
       </div>
-      <button class="ctrl-btn" onclick="toggleConfig()" style="margin-left:12px;flex-shrink:0;width:36px;height:36px;font-size:15px;">⚙</button>
+      <button class="ctrl-btn" id="cfg-btn" style="margin-left:12px;flex-shrink:0;width:36px;height:36px;font-size:15px;">⚙</button>
     </div>
     <div id="status-bar">
       <div id="gps-dot"></div>
@@ -98,32 +97,19 @@ html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Sego
   </div>
   <div id="alert-banner">Entered: <span id="alert-text"></span></div>
   <div id="map"></div>
-  <div id="splash">
-    <div id="splash-pulse">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#1a6abf" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-      </svg>
-    </div>
-    <div id="splash-title">ORR Sector Tracker</div>
-    <div id="splash-sub">Tap to start tracking</div>
-    <button id="splash-btn">Start</button>
-  </div>
   <div id="controls">
-    <button class="ctrl-btn" onclick="centerOnMe()" title="My location">◎</button>
-    <button class="ctrl-btn" onclick="reloadSectors()" title="Reload sectors">↺</button>
+    <button class="ctrl-btn" id="center-btn">◎</button>
+    <button class="ctrl-btn" id="reload-btn">↺</button>
   </div>
 </div>
 
-<div id="config-overlay" onclick="overlayClick(event)">
+<div id="config-overlay">
   <div id="config-panel">
-    <button id="close-cfg" onclick="toggleConfig()">✕</button>
+    <button id="close-cfg">✕</button>
     <h2>Settings</h2>
-    <input type="hidden" id="cfg-url">
-    <input type="hidden" id="cfg-layer">
-    <input type="hidden" id="cfg-field">
     <div class="fg">
       <label>Voice</label>
-      <select id="cfg-voice" style="width:100%;padding:8px 10px;background:#f5f7fa;border:1px solid #dde3ed;border-radius:6px;color:#1a1f2e;font-size:13px;"></select>
+      <select id="cfg-voice"></select>
     </div>
     <div class="fg">
       <label>Alert on specific sector (blank = any)</label>
@@ -133,7 +119,7 @@ html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Sego
       <input type="checkbox" id="cfg-alert-any">
       <label for="cfg-alert-any">Alert + vibrate on every boundary crossing</label>
     </div>
-    <button id="save-btn" onclick="saveConfig()">Save &amp; Apply</button>
+    <button id="save-btn">Save &amp; Apply</button>
   </div>
 </div>
 
@@ -141,121 +127,38 @@ html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Sego
 const FS_BASE = 'https://services1.arcgis.com/kILp9lqGUeOhnDbI/arcgis/rest/services/ORR_Sectors_view/FeatureServer';
 const FIELD   = 'SEC_NAME';
 
+// Config
 let cfg = { url: FS_BASE, layer: 0, field: FIELD, alertSector: '', alertAny: true, voiceName: '' };
-function loadCfg() { document.getElementById('splash').addEventListener('click', startApp);
-document.getElementById('splash-btn').addEventListener('click', startApp); return JSON.parse(localStorage.getItem('orrCfg') || '{}'); } catch(e) { return {}; } }
-function saveCfg() { 
-try { localStorage.setItem('orrCfg', JSON.stringify(cfg)); } catch(e) {} }
-Object.assign(cfg, loadCfg());
+try { Object.assign(cfg, JSON.parse(localStorage.getItem('orrCfg') || '{}')); } catch(e) {}
+function saveCfg() { try { localStorage.setItem('orrCfg', JSON.stringify(cfg)); } catch(e) {} }
 function layerUrl() { return cfg.url + '/' + cfg.layer; }
 
 // Map
 const map = L.map('map', { zoomControl: false, attributionControl: false });
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-  maxZoom: 16,
-  attribution: 'Tiles &copy; Esri'
-}).addTo(map);
-
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
-  maxZoom: 16, opacity: 1
-}).addTo(map);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 }).addTo(map);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 }).addTo(map);
 map.setView([35.9, -84.0], 9);
 
 let sectorLayer = null, locMarker = null, accCircle = null;
 let currentSector = null, watchId = null, alertTimer = null, qTimer = null;
 
-async function reloadSectors() {
-  if (sectorLayer) { map.removeLayer(sectorLayer); sectorLayer = null; }
-  setDot('warn'); setMsg('Loading sectors…');
-  const q = layerUrl() + '/query?where=1%3D1&outFields=' + encodeURIComponent(cfg.field) + '&returnGeometry=true&f=geojson';
-  try {
-    const res  = await fetch(q);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-    const n = data.features?.length || 0;
-    sectorLayer = L.geoJSON(data, {
-      style: { color: '#1a6abf', weight: 2, opacity: 0.9, fillOpacity: 0.04, fillColor: '#1a6abf' },
-      onEachFeature(feat, lyr) {
-        lyr.bindTooltip(feat.properties[cfg.field] || '—', { permanent: false, sticky: true });
-      }
-    }).addTo(map);
-    if (n > 0) map.fitBounds(sectorLayer.getBounds(), { padding: [20, 20] });
-    setDot('active'); setMsg(n + ' sectors loaded');
-  } catch(e) {
-    setDot('error'); setMsg('Sector load failed — check URL/network');
-    console.error('Sector load error:', e);
-  }
-}
-
-function startGPS() {
-  if (!navigator.geolocation) { setDot('error'); setMsg('Geolocation not supported'); return; }
-  if (watchId != null) navigator.geolocation.clearWatch(watchId);
-  setMsg('Acquiring GPS…');
-  watchId = navigator.geolocation.watchPosition(onPos, onGpsErr, {
-    enableHighAccuracy: true, maximumAge: 4000, timeout: 20000
-  });
-}
-
-function onPos(pos) {
-  const { latitude: lat, longitude: lng, accuracy: acc } = pos.coords;
-  document.getElementById('coords-display').textContent = lat.toFixed(5) + ', ' + lng.toFixed(5);
-  setDot('active'); setMsg('GPS \u00b1' + Math.round(acc) + ' m');
-  const ll = [lat, lng];
-  if (!locMarker) {
-    locMarker = L.circleMarker(ll, { radius: 9, color: '#fff', fillColor: '#58a6ff', fillOpacity: 1, weight: 2.5, zIndexOffset: 1000 }).addTo(map);
-    accCircle = L.circle(ll, { radius: acc, color: '#58a6ff', fillColor: '#58a6ff', fillOpacity: 0.08, weight: 0.5 }).addTo(map);
-  } else {
-    locMarker.setLatLng(ll);
-    accCircle.setLatLng(ll).setRadius(acc);
-  }
-  clearTimeout(qTimer);
-  qTimer = setTimeout(() => doQuery(lat, lng), 600);
-}
-
-function onGpsErr(e) {
-  const m = { 1: 'Location permission denied', 2: 'Position unavailable', 3: 'GPS timed out' };
-  setDot('error'); setMsg(m[e.code] || 'GPS error');
-  setSector(null);
-}
-
-async function doQuery(lat, lng) {
-  const geom = encodeURIComponent(JSON.stringify({ x: lng, y: lat, spatialReference: { wkid: 4326 } }));
-  const url  = layerUrl() + '/query?geometry=' + geom +
-    '&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelWithin' +
-    '&outFields=' + encodeURIComponent(cfg.field) + '&returnGeometry=false&f=json';
-  try {
-    const data = await (await fetch(url)).json();
-    const feat = data.features?.[0];
-    setSector(feat ? (feat.attributes[cfg.field] || 'Unknown') : null);
-  } catch(e) { console.warn('Query error:', e); }
-}
-
+// Speech
 let selectedVoice = null;
 
 function loadVoices() {
+  if (!window.speechSynthesis) return;
   const voices = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
   const sel = document.getElementById('cfg-voice');
   if (!sel || voices.length === 0) return;
   sel.innerHTML = voices.map((v, i) =>
-    `<option value="${i}" ${v.name === cfg.voiceName ? 'selected' : ''}>${v.name} (${v.lang})</option>`
+    '<option value="' + i + '"' + (v.name === cfg.voiceName ? ' selected' : '') + '>' + v.name + ' (' + v.lang + ')</option>'
   ).join('');
-  if (!selectedVoice || selectedVoice.name !== cfg.voiceName) {
-    selectedVoice = voices.find(v => v.name === cfg.voiceName) || voices[0];
-  }
+  selectedVoice = voices.find(v => v.name === cfg.voiceName) || voices[0];
 }
 
 if (window.speechSynthesis) {
   window.speechSynthesis.onvoiceschanged = loadVoices;
   loadVoices();
-}
-
-function unlockSpeech() {
-  if (speechUnlocked || !window.speechSynthesis) return;
-  const u = new SpeechSynthesisUtterance('');
-  u.volume = 0;
-  window.speechSynthesis.speak(u);
-  speechUnlocked = true;
 }
 
 function speak(text) {
@@ -267,16 +170,90 @@ function speak(text) {
   window.speechSynthesis.speak(u);
 }
 
-document.addEventListener('click', unlockSpeech, { once: false });
-document.addEventListener('touchstart', unlockSpeech, { once: false });
+// Sectors
+async function reloadSectors() {
+  if (sectorLayer) { map.removeLayer(sectorLayer); sectorLayer = null; }
+  setDot('warn'); setMsg('Loading sectors…');
+  const q = layerUrl() + '/query?where=1%3D1&outFields=' + encodeURIComponent(cfg.field) + '&returnGeometry=true&f=geojson';
+  try {
+    const res = await fetch(q);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const n = data.features ? data.features.length : 0;
+    sectorLayer = L.geoJSON(data, {
+      style: { color: '#1a6abf', weight: 2, opacity: 0.9, fillOpacity: 0.04, fillColor: '#1a6abf' },
+      onEachFeature: function(feat, lyr) {
+        lyr.bindTooltip(feat.properties[cfg.field] || '—', { permanent: false, sticky: true });
+      }
+    }).addTo(map);
+    if (n > 0) map.fitBounds(sectorLayer.getBounds(), { padding: [20, 20] });
+    setDot('active'); setMsg(n + ' sectors loaded');
+  } catch(e) {
+    setDot('error'); setMsg('Sector load failed');
+    console.error(e);
+  }
+}
+
+// GPS
+function startGPS() {
+  if (!navigator.geolocation) { setDot('error'); setMsg('Geolocation not supported'); return; }
+  if (watchId != null) navigator.geolocation.clearWatch(watchId);
+  setMsg('Acquiring GPS…');
+  watchId = navigator.geolocation.watchPosition(onPos, onGpsErr, {
+    enableHighAccuracy: true, maximumAge: 4000, timeout: 20000
+  });
+}
+
+function onPos(pos) {
+  var lat = pos.coords.latitude, lng = pos.coords.longitude, acc = pos.coords.accuracy;
+  document.getElementById('coords-display').textContent = lat.toFixed(5) + ', ' + lng.toFixed(5);
+  setDot('active'); setMsg('GPS ±' + Math.round(acc) + ' m');
+  var ll = [lat, lng];
+  if (!locMarker) {
+    locMarker = L.circleMarker(ll, { radius: 9, color: '#fff', fillColor: '#1a6abf', fillOpacity: 1, weight: 2.5, zIndexOffset: 1000 }).addTo(map);
+    accCircle = L.circle(ll, { radius: acc, color: '#1a6abf', fillColor: '#1a6abf', fillOpacity: 0.08, weight: 0.5 }).addTo(map);
+  } else {
+    locMarker.setLatLng(ll);
+    accCircle.setLatLng(ll).setRadius(acc);
+  }
+  clearTimeout(qTimer);
+  qTimer = setTimeout(function() { doQuery(lat, lng); }, 600);
+}
+
+function onGpsErr(e) {
+  var m = { 1: 'Location permission denied', 2: 'Position unavailable', 3: 'GPS timed out' };
+  setDot('error'); setMsg(m[e.code] || 'GPS error');
+  setSector(null);
+}
+
+async function doQuery(lat, lng) {
+  var geom = encodeURIComponent(JSON.stringify({ x: lng, y: lat, spatialReference: { wkid: 4326 } }));
+  var url = layerUrl() + '/query?geometry=' + geom +
+    '&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelWithin' +
+    '&outFields=' + encodeURIComponent(cfg.field) + '&returnGeometry=false&f=json';
+  try {
+    var data = await (await fetch(url)).json();
+    var feat = data.features && data.features[0];
+    setSector(feat ? (feat.attributes[cfg.field] || 'Unknown') : null);
+  } catch(e) { console.warn('Query error:', e); }
+}
 
 function setSector(name) {
-  const el = document.getElementById('sector-name');
-  if (!name) { el.textContent = 'Outside sector coverage'; el.className = 'unknown'; speak('Outside sector coverage'); currentSector = null; return; }
+  var el = document.getElementById('sector-name');
+  if (!name) {
+    el.textContent = 'Outside sector coverage';
+    el.className = 'unknown';
+    speak('Outside sector coverage');
+    currentSector = null;
+    return;
+  }
   if (name !== currentSector) {
-    el.textContent = name; el.className = '';
-    void el.offsetWidth; el.classList.add('flash');
-    const isFirst = currentSector === null;
+    el.textContent = name;
+    el.className = '';
+    void el.offsetWidth;
+    el.classList.add('flash');
+    var isFirst = currentSector === null;
     currentSector = name;
     fireAlert(name);
     speak(isFirst ? 'Sector: ' + name : 'Entering ' + name);
@@ -284,13 +261,13 @@ function setSector(name) {
 }
 
 function fireAlert(name) {
-  const hit = cfg.alertAny || (cfg.alertSector && name.toLowerCase() === cfg.alertSector.toLowerCase());
+  var hit = cfg.alertAny || (cfg.alertSector && name.toLowerCase() === cfg.alertSector.toLowerCase());
   if (!hit) return;
-  const ab = document.getElementById('alert-banner');
+  var ab = document.getElementById('alert-banner');
   document.getElementById('alert-text').textContent = name;
   ab.classList.add('visible');
   clearTimeout(alertTimer);
-  alertTimer = setTimeout(() => ab.classList.remove('visible'), 5000);
+  alertTimer = setTimeout(function() { ab.classList.remove('visible'); }, 5000);
   if ('vibrate' in navigator) navigator.vibrate([80, 40, 80]);
 }
 
@@ -298,46 +275,57 @@ function setDot(s) { document.getElementById('gps-dot').className = s; }
 function setMsg(m) { document.getElementById('gps-status').textContent = m; }
 function centerOnMe() { if (locMarker) map.setView(locMarker.getLatLng(), 14); }
 
-function toggleConfig() {
-  const o = document.getElementById('config-overlay');
-  if (!o.classList.contains('open')) {
-    loadVoices();
-    document.getElementById('cfg-url').value = cfg.url;
-    document.getElementById('cfg-layer').value = cfg.layer;
-    document.getElementById('cfg-field').value = cfg.field;
-    document.getElementById('cfg-alert-sector').value = cfg.alertSector;
-    document.getElementById('cfg-alert-any').checked = cfg.alertAny;
-  }
-  o.classList.toggle('open');
+// Config panel
+function openConfig() {
+  loadVoices();
+  document.getElementById('cfg-alert-sector').value = cfg.alertSector;
+  document.getElementById('cfg-alert-any').checked = cfg.alertAny;
+  document.getElementById('config-overlay').classList.add('open');
 }
+function closeConfig() { document.getElementById('config-overlay').classList.remove('open'); }
 
 function saveConfig() {
-  const voices = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
-  const vi = parseInt(document.getElementById('cfg-voice').value);
-  if (!isNaN(vi) && voices[vi]) { selectedVoice = voices[vi]; cfg.voiceName = voices[vi].name; speak('Voice selected: ' + voices[vi].name.split(' ')[0]); }
-  cfg.url         = document.getElementById('cfg-url').value.trim() || FS_BASE;
-  cfg.layer       = parseInt(document.getElementById('cfg-layer').value) || 0;
-  cfg.field       = document.getElementById('cfg-field').value.trim() || FIELD;
+  var voices = window.speechSynthesis ? window.speechSynthesis.getVoices().filter(function(v) { return v.lang.startsWith('en'); }) : [];
+  var vi = parseInt(document.getElementById('cfg-voice').value);
+  if (!isNaN(vi) && voices[vi]) {
+    selectedVoice = voices[vi];
+    cfg.voiceName = voices[vi].name;
+    speak('Voice selected');
+  }
   cfg.alertSector = document.getElementById('cfg-alert-sector').value.trim();
-  cfg.alertAny    = document.getElementById('cfg-alert-any').checked;
-  saveCfg(); toggleConfig(); reloadSectors();
+  cfg.alertAny = document.getElementById('cfg-alert-any').checked;
+  saveCfg();
+  closeConfig();
 }
 
-function overlayClick(e) { if (e.target === document.getElementById('config-overlay')) toggleConfig(); }
-
-try {
-  if ('serviceWorker' in navigator && location.protocol === 'https:') {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+// Splash → start
+document.getElementById('start-btn').addEventListener('click', function() {
+  if (window.speechSynthesis) {
+    var u = new SpeechSynthesisUtterance('');
+    u.volume = 0;
+    window.speechSynthesis.speak(u);
   }
-} catch(e) {}
-
-function startApp() {
-  unlockSpeech();
   document.getElementById('splash').style.display = 'none';
   reloadSectors();
   startGPS();
-}
+});
 
+// Button wiring
+document.getElementById('cfg-btn').addEventListener('click', openConfig);
+document.getElementById('close-cfg').addEventListener('click', closeConfig);
+document.getElementById('save-btn').addEventListener('click', saveConfig);
+document.getElementById('center-btn').addEventListener('click', centerOnMe);
+document.getElementById('reload-btn').addEventListener('click', reloadSectors);
+document.getElementById('config-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeConfig();
+});
+
+// Service worker
+try {
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    navigator.serviceWorker.register('./sw.js').catch(function() {});
+  }
+} catch(e) {}
 </script>
 </body>
 </html>
