@@ -16,7 +16,6 @@
 html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #1a1f2e; overflow: hidden; }
 #app { display: flex; flex-direction: column; height: 100vh; }
 
-/* Splash */
 #splash { position: absolute; inset: 0; z-index: 9999; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
 #splash-pulse { width: 72px; height: 72px; border-radius: 50%; background: rgba(26,106,191,0.12); display: flex; align-items: center; justify-content: center; animation: sp 1.8s ease-in-out infinite; }
 @keyframes sp { 0%,100%{transform:scale(1)} 50%{transform:scale(1.12)} }
@@ -24,7 +23,6 @@ html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Sego
 #splash p { font-size: 15px; color: #7a8499; }
 #splash button { padding: 14px 48px; background: #1a6abf; border: none; border-radius: 10px; color: #fff; font-size: 18px; font-weight: 600; cursor: pointer; -webkit-appearance: none; }
 
-/* Banner */
 #banner { flex-shrink: 0; background: #fff; border-bottom: 1px solid #dde3ed; padding: 12px 16px 10px; z-index: 1000; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
 #banner-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #7a8499; margin-bottom: 3px; }
 #sector-name { font-size: 32px; font-weight: 700; color: #1a6abf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.15; }
@@ -50,7 +48,6 @@ html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Sego
 .ctrl-btn { width: 44px; height: 44px; background: #fff; border: 1px solid #dde3ed; border-radius: 8px; color: #1a1f2e; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
 .ctrl-btn:active { background: #f0f3f8; }
 
-/* Config */
 #config-overlay { display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.45); z-index: 2000; align-items: flex-end; justify-content: center; }
 #config-overlay.open { display: flex; }
 #config-panel { background: #fff; border: 1px solid #dde3ed; border-radius: 14px 14px 0 0; padding: 20px 16px 36px; width: 100%; max-width: 500px; }
@@ -140,7 +137,7 @@ L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_L
 map.setView([35.9, -84.0], 9);
 
 let sectorLayer = null, locMarker = null, accCircle = null;
-let currentSector = null, watchId = null, alertTimer = null, qTimer = null, firstQuery = true;
+let currentSector = null, watchId = null, alertTimer = null, qTimer = null;
 
 // Speech
 let selectedVoice = null;
@@ -206,10 +203,10 @@ function startGPS() {
 }
 
 function onPos(pos) {
-  var lat = pos.coords.latitude, lng = pos.coords.longitude, acc = pos.coords.accuracy;
+  const lat = pos.coords.latitude, lng = pos.coords.longitude, acc = pos.coords.accuracy;
   document.getElementById('coords-display').textContent = lat.toFixed(5) + ', ' + lng.toFixed(5);
   setDot('active'); setMsg('GPS ±' + Math.round(acc) + ' m');
-  var ll = [lat, lng];
+  const ll = [lat, lng];
   if (!locMarker) {
     locMarker = L.circleMarker(ll, { radius: 9, color: '#fff', fillColor: '#1a6abf', fillOpacity: 1, weight: 2.5, zIndexOffset: 1000 }).addTo(map);
     accCircle = L.circle(ll, { radius: acc, color: '#1a6abf', fillColor: '#1a6abf', fillOpacity: 0.08, weight: 0.5 }).addTo(map);
@@ -218,64 +215,55 @@ function onPos(pos) {
     accCircle.setLatLng(ll).setRadius(acc);
   }
   clearTimeout(qTimer);
-  qTimer = setTimeout(function() { doQuery(lat, lng); }, 600);
+  qTimer = setTimeout(function() { doQuery(lat, lng); }, 1500);
 }
 
 function onGpsErr(e) {
-  var m = { 1: 'Location permission denied', 2: 'Position unavailable', 3: 'GPS timed out' };
+  const m = { 1: 'Location permission denied', 2: 'Position unavailable', 3: 'GPS timed out' };
   setDot('error'); setMsg(m[e.code] || 'GPS error');
-  setSector(null);
 }
 
-let querying = false;
+// Sector query — simple, no querying flag, debounce handles it
 async function doQuery(lat, lng) {
-  if (querying) return;
-  querying = true;
-  setMsg('Querying sector…');
-  var geom = encodeURIComponent(JSON.stringify({ x: lng, y: lat, spatialReference: { wkid: 4326 } }));
-  var url = layerUrl() + '/query?geometry=' + geom +
+  const geom = encodeURIComponent(JSON.stringify({ x: lng, y: lat, spatialReference: { wkid: 4326 } }));
+  const url = layerUrl() + '/query?geometry=' + geom +
     '&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelWithin' +
     '&outFields=' + encodeURIComponent(cfg.field) + '&returnGeometry=false&f=json';
   try {
-    var res = await fetch(url);
-    var data = await res.json();
-    if (data.error) { setMsg('Service error: ' + data.error.message); querying = false; return; }
-    var feat = data.features && data.features[0];
-    var name = feat ? (feat.attributes[cfg.field] || 'Unknown') : null;
-    setMsg('GPS ±' + Math.round(0) + ' m');
-    if (name !== currentSector) setSector(name);
+    const res = await fetch(url);
+    const data = await res.json();
+    const feat = data.features && data.features[0];
+    const name = feat ? (feat.attributes[cfg.field] || 'Unknown') : null;
+    setSector(name);
   } catch(e) {
-    setMsg('Query failed: ' + e.message);
     console.warn('Query error:', e);
   }
-  finally { querying = false; }
 }
 
+// Only speak and update display when sector actually changes
 function setSector(name) {
-  var el = document.getElementById('sector-name');
-  var prev = currentSector;
-      if (name === prev && !firstQuery) return;
-    firstQuery = false;
+  if (name === currentSector) return;
+  const el = document.getElementById('sector-name');
+  const prev = currentSector;
+  currentSector = name;
   if (!name) {
     el.textContent = 'Outside sector coverage';
     el.className = 'unknown';
-    currentSector = null;
-    if (prev !== null || firstQuery === false) speak('Outside sector coverage');
+    if (prev !== null) speak('Outside sector coverage');
     return;
   }
   el.textContent = name;
   el.className = '';
   void el.offsetWidth;
   el.classList.add('flash');
-  currentSector = name;
   fireAlert(name);
   speak(prev === null ? 'Sector: ' + name : 'Entering ' + name);
 }
 
 function fireAlert(name) {
-  var hit = cfg.alertAny || (cfg.alertSector && name.toLowerCase() === cfg.alertSector.toLowerCase());
+  const hit = cfg.alertAny || (cfg.alertSector && name.toLowerCase() === cfg.alertSector.toLowerCase());
   if (!hit) return;
-  var ab = document.getElementById('alert-banner');
+  const ab = document.getElementById('alert-banner');
   document.getElementById('alert-text').textContent = name;
   ab.classList.add('visible');
   clearTimeout(alertTimer);
@@ -287,7 +275,7 @@ function setDot(s) { document.getElementById('gps-dot').className = s; }
 function setMsg(m) { document.getElementById('gps-status').textContent = m; }
 function centerOnMe() { if (locMarker) map.setView(locMarker.getLatLng(), 14); }
 
-// Config panel
+// Config
 function openConfig() {
   loadVoices();
   document.getElementById('cfg-alert-sector').value = cfg.alertSector;
@@ -297,23 +285,23 @@ function openConfig() {
 function closeConfig() { document.getElementById('config-overlay').classList.remove('open'); }
 
 function saveConfig() {
-  var voices = window.speechSynthesis ? window.speechSynthesis.getVoices().filter(function(v) { return v.lang.startsWith('en'); }) : [];
-  var vi = parseInt(document.getElementById('cfg-voice').value);
+  const voices = window.speechSynthesis ? window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('en')) : [];
+  const vi = parseInt(document.getElementById('cfg-voice').value);
   if (!isNaN(vi) && voices[vi]) {
     selectedVoice = voices[vi];
     cfg.voiceName = voices[vi].name;
     speak('Voice selected');
   }
   cfg.alertSector = document.getElementById('cfg-alert-sector').value.trim();
-  cfg.alertAny = document.getElementById('cfg-alert-any').checked;
+  cfg.alertAny    = document.getElementById('cfg-alert-any').checked;
   saveCfg();
   closeConfig();
 }
 
-// Splash → start
+// Splash
 document.getElementById('start-btn').addEventListener('click', function() {
   if (window.speechSynthesis) {
-    var u = new SpeechSynthesisUtterance('');
+    const u = new SpeechSynthesisUtterance('');
     u.volume = 0;
     window.speechSynthesis.speak(u);
   }
@@ -322,7 +310,7 @@ document.getElementById('start-btn').addEventListener('click', function() {
   startGPS();
 });
 
-// Button wiring
+// Buttons
 document.getElementById('cfg-btn').addEventListener('click', openConfig);
 document.getElementById('close-cfg').addEventListener('click', closeConfig);
 document.getElementById('save-btn').addEventListener('click', saveConfig);
