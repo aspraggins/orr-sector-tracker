@@ -108,13 +108,14 @@ const FS_BASE = 'https://services1.arcgis.com/kILp9lqGUeOhnDbI/arcgis/rest/servi
 const FIELD   = 'SEC_NAME';
 
 let cfg = { url: FS_BASE, layer: 0, field: FIELD, alertSector: '', alertAny: true, voiceName: '' };
-try { Object.assign(cfg, JSON.parse(localStorage.getItem('orrCfg') || '{}')); } catch(e) {}
+function loadCfg() { try { return JSON.parse(localStorage.getItem('orrCfg') || '{}'); } catch(e) { return {}; } }
 function saveCfg() { try { localStorage.setItem('orrCfg', JSON.stringify(cfg)); } catch(e) {} }
+Object.assign(cfg, loadCfg());
 function layerUrl() { return cfg.url + '/' + cfg.layer; }
 
 // Map
 const map = L.map('map', { zoomControl: false, attributionControl: false });
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Navigation_Charts/MapServer/tile/{z}/{y}/{x}', {
   maxZoom: 19,
   attribution: 'Tiles &copy; Esri'
 }).addTo(map);
@@ -284,9 +285,11 @@ function saveConfig() {
 
 function overlayClick(e) { if (e.target === document.getElementById('config-overlay')) toggleConfig(); }
 
-if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('/sw.js').catch(() => {});
-}
+try {
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+} catch(e) {}
 
 reloadSectors();
 startGPS();
