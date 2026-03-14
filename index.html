@@ -415,6 +415,7 @@ document.getElementById('start-btn').addEventListener('click', function() {
     window.speechSynthesis.speak(u);
   }
   document.getElementById('splash').style.display = 'none';
+  setTimeout(function() { map.invalidateSize(); }, 100);
   reloadSectors();
   startGPS();
 });
