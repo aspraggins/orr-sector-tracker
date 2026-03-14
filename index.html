@@ -132,7 +132,8 @@ function saveCfg() { try { localStorage.setItem('orrCfg', JSON.stringify(cfg)); 
 function layerUrl() { return cfg.url + '/' + cfg.layer; }
 
 // Map
-const map = L.map('map', { zoomControl: false, attributionControl: false, tap: false });
+const map = L.map('map', { zoomControl: false, attributionControl: false, tap: false, dragging: true });
+L.DomEvent.disableClickPropagation(document.getElementById('banner'));
 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 }).addTo(map);
 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 }).addTo(map);
 map.setView([35.9, -84.0], 9);
