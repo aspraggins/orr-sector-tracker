@@ -11,6 +11,7 @@
 <title>ORR Sector Tracker</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/polylabel@1.1.0/dist/polylabel.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #1a1f2e; overflow: hidden; }
@@ -186,35 +187,23 @@ async function reloadSectors() {
         lyr.on('click', function(e) { L.DomEvent.stopPropagation(e); });
       }
     }).addTo(map);
-    // True centroid calculation for polygon
-    function polyCentroid(coords) {
-      let area = 0, cx = 0, cy = 0;
-      const n = coords.length;
-      for (let i = 0, j = n - 1; i < n; j = i++) {
-        const xi = coords[i][0], yi = coords[i][1];
-        const xj = coords[j][0], yj = coords[j][1];
-        const f = xi * yj - xj * yi;
-        area += f;
-        cx += (xi + xj) * f;
-        cy += (yi + yj) * f;
-      }
-      area /= 2;
-      cx /= 6 * area;
-      cy /= 6 * area;
-      return L.latLng(cy, cx);
-    }
-
     function featCentroid(feat) {
       const g = feat.geometry;
-      if (g.type === 'Polygon') return polyCentroid(g.coordinates[0]);
-      if (g.type === 'MultiPolygon') {
-        // Use centroid of the largest ring
-        let biggest = g.coordinates[0][0];
-        g.coordinates.forEach(function(poly) {
-          if (poly[0].length > biggest.length) biggest = poly[0];
-        });
-        return polyCentroid(biggest);
-      }
+      try {
+        let coords;
+        if (g.type === 'Polygon') {
+          coords = g.coordinates;
+        } else if (g.type === 'MultiPolygon') {
+          // Pick the largest polygon
+          coords = g.coordinates.reduce(function(a, b) {
+            return b[0].length > a[0].length ? b : a;
+          });
+        }
+        if (coords) {
+          const p = polylabel(coords, 0.001);
+          return L.latLng(p[1], p[0]);
+        }
+      } catch(e) {}
       return L.geoJSON(feat).getBounds().getCenter();
     }
 
